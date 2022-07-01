@@ -1,0 +1,21 @@
+.idea
+__pycache__
+.env
+.data
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+
+venv
+env
+.pytest_cache
+.coverage
+lightning_logs
+.ipynb_checkpoints
+.ckpt
+example.ckpt
+.neptune
+#data
+saved_model
