@@ -1,9 +1,10 @@
+from GLOBALS import *
 
 
-def main(name):
+def main():
     pass
 
 
 if __name__ == '__main__':
-    main('PyCharm')
+    main()
 
