@@ -11,6 +11,15 @@ def get_fake_data():
     N = 100
     x, y = np.random.random((N, 60, 30)), np.random.random(N)
 
+    # create "stocks" series
+    pass
+
+    # transform them together 30 steps forward in one number series
+    pass
+
+    # plot results on two separate graphs
+    pass
+
     fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 7))
     N = 100
     x1 = np.sin(range(N)) + 0.01 * np.random.random(N)
