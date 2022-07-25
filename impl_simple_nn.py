@@ -12,29 +12,19 @@ def get_fake_data():
     x, y = np.random.random((N, 60, 30)), np.random.random(N)
 
     # create "stocks" series
-    pass
-
-    # transform them together 30 steps forward in one number series
-    pass
-
-    # plot results on two separate graphs
-    pass
-
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 7))
-    N = 100
-    x1 = np.sin(range(N)) + 0.01 * np.random.random(N)
-    x2 = np.cos(range(N)) + 0.01 * np.random.random(N)
-    y = 0.1 * np.power(x1, 2) + 0.5 * np.power(x2, 2)
-
-    ax1.plot(x1)
-    ax1.plot(x2)
-    ax2.plot(y)
-    plt.show()
+    for i in range(N):
+        curr_x = np.ones((60, 30))
+        curr_x = np.cumsum(curr_x, 1)
+        curr_x = np.sin(curr_x)
+        curr_x = curr_x + x[i] * 0.3
+        x[i] = curr_x
+        curr_y = np.sum(curr_x[:, 20:]) / 60
+        y[i] = curr_y
 
     return x,  y
 
 
-def plot_data(x):
+def plot_data_x(x):
     fig, ax = plt.subplots(figsize=(10, 7))
     ax = plt.axes(projection='3d')
     for x_item in x:
@@ -51,9 +41,14 @@ def plot_data(x):
         # ax.matshow(x_item)
 
         plt.tight_layout()
-        plt.pause(1)
+        plt.pause(0.01)
 
     plt.close()
+
+
+def plot_data_y(y):
+    plt.plot(y)
+    plt.show()
 
 
 def run_simple_nn(x, y):
@@ -116,7 +111,8 @@ def run_simple_nn(x, y):
 def main():
     x, y = get_fake_data()
     # x, y = get_data_from_pickle()
-    # plot_data(x)
+    # plot_data_x(x)
+    plot_data_y(y)
     # run_simple_nn(x, y)
 
 
