@@ -15,6 +15,7 @@ class LSTMNet(nn.Module):
                             num_layers=num_layers)  # lstm
         self.fc_1 = nn.Linear(hidden_size, 128)  # fully connected 1
         self.fc = nn.Linear(128, num_classes)  # fully connected last layer
+        self.kirill_fc = nn.Linear(hidden_size, num_classes)
 
         self.relu = nn.ReLU()
 
