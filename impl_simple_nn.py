@@ -1,3 +1,5 @@
+import numpy as np
+
 from GLOBALS import *
 from impl_get_data import get_data_from_pickle
 from impl_nets import LSTMNet
@@ -51,16 +53,20 @@ def plot_data_y(y):
     plt.show()
 
 
-def run_simple_nn(x, y):
+def run_simple_nn(x, y, train_percentage=0.8):
     """
     Preprocessing
     """
+    x = np.array(x)
+    y = np.array(y)
     # first 200 for training
-    X_train = x[:80, :]
-    X_test = x[80:, :]
+    to_train = int(train_percentage * len(x))
 
-    y_train = y[:80]
-    y_test = y[80:]
+    X_train = x[:to_train, :]
+    y_train = y[:to_train]
+
+    X_test = x[to_train:, :]
+    y_test = y[to_train:]
 
     y_train_tensors = []
     X_train_tensors_final = []
@@ -85,7 +91,7 @@ def run_simple_nn(x, y):
     """
     Load the model
     """
-    num_epochs = 100  # 1000 epochs
+    num_epochs = 10  # 1000 epochs
     learning_rate = 0.001  # 0.001 lr
 
     input_size = 60  # number of features
@@ -126,13 +132,16 @@ def run_simple_nn(x, y):
 
             y_hat.append(outputs.item())
             losses.append(loss.item())
+            print(f"\rEpoch-batch: {epoch}-{i}, loss:{loss.item() : 1.5f}", end='')
+        print()
+        print(f"Epoch: {epoch}, loss:{np.mean(losses) : 1.5f}")
 
-        if epoch % 10 == 0:
-            print(f"Epoch: {epoch}, loss:{np.mean(losses) : 1.5f}")
-            # plt.plot(y_train, label='real')
-            # plt.plot(y_hat, label='predicted')
-            # plt.legend()
-            # plt.show()
+        if epoch % 1 == 0:
+            # print(f"Epoch: {epoch}, loss:{np.mean(losses) : 1.5f}")
+            plt.plot(y_train, label='real')
+            plt.plot(y_hat, label='predicted')
+            plt.legend()
+            plt.show()
 
     # save the model
     pass
@@ -152,8 +161,8 @@ def run_simple_nn(x, y):
 
 
 def main():
-    x, y = get_fake_data()
-    # x, y = get_data_from_pickle()
+    # x, y = get_fake_data()
+    x, y = get_data_from_pickle()
     # plot_data_x(x)
     # plot_data_y(y)
     run_simple_nn(x, y)
