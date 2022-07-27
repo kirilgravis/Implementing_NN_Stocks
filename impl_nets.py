@@ -1,26 +1,32 @@
 from GLOBALS import *
 
 
-class Net(nn.Module):
+class LSTMNet(nn.Module):
 
-    def __init__(self):
-        super(Net, self).__init__()
-        # # 1 input image channel, 6 output channels, 5x5 square convolution
-        # # kernel
-        # self.conv1 = nn.Conv2d(1, 6, 5)
-        # self.conv2 = nn.Conv2d(6, 16, 5)
-        # # an affine operation: y = Wx + b
-        # self.fc1 = nn.Linear(16 * 5 * 5, 120)  # 5*5 from image dimension
-        # self.fc2 = nn.Linear(120, 84)
-        # self.fc3 = nn.Linear(84, 10)
+    def __init__(self, num_classes, input_size, hidden_size, num_layers, seq_length):
+        super(LSTMNet, self).__init__()
+        self.num_classes = num_classes  # number of classes
+        self.num_layers = num_layers  # number of layers
+        self.input_size = input_size  # input size
+        self.hidden_size = hidden_size  # hidden state
+        self.seq_length = seq_length  # sequence length
+
+        self.lstm = nn.LSTM(input_size=input_size, hidden_size=hidden_size,
+                            num_layers=num_layers)  # lstm
+        self.fc_1 = nn.Linear(hidden_size, 128)  # fully connected 1
+        self.fc = nn.Linear(128, num_classes)  # fully connected last layer
+
+        self.relu = nn.ReLU()
 
     def forward(self, x):
-        # # Max pooling over a (2, 2) window
-        # x = F.max_pool2d(F.relu(self.conv1(x)), (2, 2))
-        # # If the size is a square, you can specify with a single number
-        # x = F.max_pool2d(F.relu(self.conv2(x)), 2)
-        # x = torch.flatten(x, 1) # flatten all dimensions except the batch dimension
-        # x = F.relu(self.fc1(x))
-        # x = F.relu(self.fc2(x))
-        # x = self.fc3(x)
-        return x
+        h_0 = Variable(torch.zeros(self.num_layers, x.size(1), self.hidden_size))  # hidden state
+        c_0 = Variable(torch.zeros(self.num_layers, x.size(1), self.hidden_size))  # internal state
+        # Propagate input through LSTM
+        output, (hn, cn) = self.lstm(x, (h_0, c_0))  # lstm with input, hidden, and internal state
+        hn = hn.view(-1, self.hidden_size)  # reshaping the data for Dense layer next
+        out = self.relu(hn)
+        out = self.fc_1(out)  # first Dense
+        out = self.relu(out)  # relu
+        out = self.fc(out)  # Final Output
+
+        return out

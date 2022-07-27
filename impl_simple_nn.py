@@ -1,6 +1,6 @@
 from GLOBALS import *
 from impl_get_data import get_data_from_pickle
-from impl_nets import Net
+from impl_nets import LSTMNet
 
 
 def f(x, y):
@@ -52,68 +52,111 @@ def plot_data_y(y):
 
 
 def run_simple_nn(x, y):
-    # load a model
-    net = Net()
+    """
+    Preprocessing
+    """
+    # first 200 for training
+    X_train = x[:80, :]
+    X_test = x[80:, :]
+
+    y_train = y[:80]
+    y_test = y[80:]
+
+    y_train_tensors = []
+    X_train_tensors_final = []
+    for i in range(X_train.shape[0]):
+        x_item = X_train[i]
+        x_item_transposed = x_item.T
+        x_item_tensor = Variable(torch.Tensor(x_item_transposed))
+        x_item_tensor_final = torch.reshape(x_item_tensor, (x_item_tensor.shape[0], 1, x_item_tensor.shape[1]))
+        X_train_tensors_final.append(x_item_tensor_final)
+        y_train_tensors.append(Variable(torch.Tensor([[y_train[i]]])))
+
+    y_test_tensors = []
+    X_test_tensors_final = []
+    for i in range(X_test.shape[0]):
+        x_item = X_test[i]
+        x_item_transposed = x_item.T
+        x_item_tensor = Variable(torch.Tensor(x_item_transposed))
+        x_item_tensor_final = torch.reshape(x_item_tensor, (x_item_tensor.shape[0], 1, x_item_tensor.shape[1]))
+        X_test_tensors_final.append(x_item_tensor_final)
+        y_test_tensors.append(Variable(torch.Tensor([[y_test[i]]])))
+
+    """
+    Load the model
+    """
+    num_epochs = 100  # 1000 epochs
+    learning_rate = 0.001  # 0.001 lr
+
+    input_size = 60  # number of features
+    hidden_size = 5  # number of features in hidden state
+    num_layers = 1  # number of stacked lstm layers
+
+    num_classes = 1  # number of output classes
+    seq_length = X_train_tensors_final[0].shape[0]
+    net = LSTMNet(
+        num_classes=num_classes,
+        input_size=input_size,
+        hidden_size=hidden_size,
+        num_layers=num_layers,
+        seq_length=seq_length
+    )
+    criterion = torch.nn.MSELoss()  # mean-squared error for regression
+    optimizer = torch.optim.Adam(net.parameters(), lr=learning_rate)
     print(net)
-    params = list(net.parameters())
-    print(len(params))
-    print(params[0].size())
 
-    # train the model
-    input = torch.randn(1, 1, 32, 32)
-    out = net(input)
-    print(out)
-    net.zero_grad()
-    out.backward(torch.randn(1, 10))
+    """
+    Train the model
+    """
+    for epoch in range(num_epochs):
 
-    output = net(input)
-    target = torch.randn(10)  # a dummy target, for example
-    target = target.view(1, -1)  # make it the same shape as output
-    criterion = nn.MSELoss()
+        y_hat = []
+        losses = []
+        for i, i_batch in enumerate(X_train_tensors_final):
+            outputs = net.forward(i_batch)  # forward pass
+            optimizer.zero_grad()  # caluclate the gradient, manually setting to 0
 
-    loss = criterion(output, target)
-    print(loss)
+            # obtain the loss function
+            y_train_tensor = y_train_tensors[i]
+            loss = criterion(outputs, y_train_tensor)
 
-    print(loss.grad_fn)  # MSELoss
-    print(loss.grad_fn.next_functions[0][0])  # Linear
-    print(loss.grad_fn.next_functions[0][0].next_functions[0][0])  # ReLU
+            loss.backward()  # calculates the loss of the loss function
 
-    net.zero_grad()  # zeroes the gradient buffers of all parameters
+            optimizer.step()  # improve from loss, i.e backprop
 
-    print('conv1.bias.grad before backward')
-    print(net.conv1.bias.grad)
+            y_hat.append(outputs.item())
+            losses.append(loss.item())
 
-    loss.backward()
-
-    print('conv1.bias.grad after backward')
-    print(net.conv1.bias.grad)
-
-    # create your optimizer
-    optimizer = optim.SGD(net.parameters(), lr=0.01)
-
-    # in your training loop:
-    optimizer.zero_grad()  # zero the gradient buffers
-    output = net(input)
-    loss = criterion(output, target)
-    loss.backward()
-    optimizer.step()  # Does the update
+        if epoch % 10 == 0:
+            print(f"Epoch: {epoch}, loss:{np.mean(losses) : 1.5f}")
+            plt.plot(y_train, label='real')
+            plt.plot(y_hat, label='predicted')
+            plt.legend()
+            plt.show()
 
     # save the model
     pass
 
     # test the model
-    pass
+    net.eval()
+    y_hat = []
+    for i, i_batch in enumerate(X_test_tensors_final):
+        outputs = net.forward(i_batch)
+        y_hat.append(outputs.item())
 
     # plot results
-    pass
+    plt.plot(y_test, label='real')
+    plt.plot(y_hat, label='predicted')
+    plt.legend()
+    plt.show()
 
 
 def main():
     x, y = get_fake_data()
     # x, y = get_data_from_pickle()
     # plot_data_x(x)
-    plot_data_y(y)
-    # run_simple_nn(x, y)
+    # plot_data_y(y)
+    run_simple_nn(x, y)
 
 
 if __name__ == '__main__':
