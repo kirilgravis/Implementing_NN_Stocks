@@ -129,10 +129,10 @@ def run_simple_nn(x, y):
 
         if epoch % 10 == 0:
             print(f"Epoch: {epoch}, loss:{np.mean(losses) : 1.5f}")
-            plt.plot(y_train, label='real')
-            plt.plot(y_hat, label='predicted')
-            plt.legend()
-            plt.show()
+            # plt.plot(y_train, label='real')
+            # plt.plot(y_hat, label='predicted')
+            # plt.legend()
+            # plt.show()
 
     # save the model
     pass
